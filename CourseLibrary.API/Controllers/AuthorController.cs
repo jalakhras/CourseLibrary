@@ -1,6 +1,9 @@
-﻿using CourseLibrary.API.Services;
+﻿using CourseLibrary.API.Helper;
+using CourseLibrary.API.Model;
+using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Linq;
 
 namespace CourseLibrary.API.Controllers
 {
@@ -15,9 +18,18 @@ namespace CourseLibrary.API.Controllers
         }
         [HttpGet()]
         public IActionResult GetAuthors()
+
         {
+
             var autors = _courseLibraryRepository.GetAuthors();
-            return new JsonResult(autors);
+            var autirsDto = autors.Select(item => new AuthorDto
+            {
+                Id = item.Id,
+                Name = $"{item.FirstName}{item.LastName}",
+                Age = item.DateOfBirth.GetCurrantAge()
+
+            }).ToList();
+            return new JsonResult(autirsDto);
         }
 
         [HttpGet("{authorId:guid}")]
