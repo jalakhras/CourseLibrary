@@ -3,6 +3,7 @@ using CourseLibrary.API.Model;
 using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace CourseLibrary.API.Controllers
@@ -17,7 +18,7 @@ namespace CourseLibrary.API.Controllers
             _courseLibraryRepository = courseLibraryRepository ?? throw new ArgumentNullException(nameof(courseLibraryRepository));
         }
         [HttpGet()]
-        public IActionResult GetAuthors()
+        public ActionResult<IEnumerable<AuthorDto>> GetAuthors()
 
         {
 
