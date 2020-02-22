@@ -1,11 +1,9 @@
 ﻿using AutoMapper;
-using CourseLibrary.API.Helper;
 using CourseLibrary.API.Model;
 using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace CourseLibrary.API.Controllers
 {
@@ -15,10 +13,10 @@ namespace CourseLibrary.API.Controllers
     {
         private readonly ICourseLibraryRepository _courseLibraryRepository;
         private readonly IMapper _mapper;
-        public AuthorController(ICourseLibraryRepository courseLibraryRepository,IMapper mapper)
+        public AuthorController(ICourseLibraryRepository courseLibraryRepository, IMapper mapper)
         {
             _courseLibraryRepository = courseLibraryRepository ?? throw new ArgumentNullException(nameof(courseLibraryRepository));
-            _mapper = mapper?? throw new ArgumentNullException(nameof(mapper));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
         [HttpGet()]
         public ActionResult<IEnumerable<AuthorDto>> GetAuthors()

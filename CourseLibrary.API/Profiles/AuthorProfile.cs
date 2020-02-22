@@ -12,11 +12,11 @@ namespace CourseLibrary.API.Profiles
             CreateMap<Author, AuthorDto>()
                 .ForMember(dist => dist.Name,
                 opt => opt.MapFrom(src => $"{src.FirstName}{src.LastName}"))
-                .ForMember(dist => dist.Age, 
+                .ForMember(dist => dist.Age,
                 opt => opt.MapFrom(src => src.DateOfBirth.GetCurrantAge()));
-                
-                
-                
+
+
+
         }
     }
 }
