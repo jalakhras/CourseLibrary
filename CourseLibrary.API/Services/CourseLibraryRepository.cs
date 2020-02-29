@@ -122,10 +122,17 @@ namespace CourseLibrary.API.Services
             return _context.Authors.ToList<Author>();
         }
         
-        public IEnumerable<Author> GetAuthors(string mainCategory)
+        public IEnumerable<Author> GetAuthors(string mainCategory, string searchQuery)
         {
-            if (string.IsNullOrWhiteSpace(mainCategory)) return _context.Authors.ToList();
-            return _context.Authors.Where(x => x.MainCategory.Trim() == mainCategory.Trim()).ToList();
+            if (string.IsNullOrWhiteSpace(mainCategory) && string.IsNullOrWhiteSpace(searchQuery)) return _context.Authors.ToList();
+            var collction = _context.Authors as IQueryable<Author>;
+            if (!string.IsNullOrWhiteSpace(mainCategory))
+                collction = collction.Where(x => x.MainCategory == mainCategory.Trim());
+            if(!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                collction = collction.Where(x => x.MainCategory.Contains(searchQuery.Trim()) || x.LastName.Contains(searchQuery.Trim()) || x.FirstName.Contains(searchQuery.Trim())); 
+            }
+            return collction.ToList(); 
         }
 
         public IEnumerable<Author> GetAuthors(IEnumerable<Guid> authorIds)

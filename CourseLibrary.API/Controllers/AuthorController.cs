@@ -18,21 +18,21 @@ namespace CourseLibrary.API.Controllers
             _courseLibraryRepository = courseLibraryRepository ?? throw new ArgumentNullException(nameof(courseLibraryRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
+        //[HttpGet()]
+        //[HttpHead]
+        //public ActionResult<IEnumerable<AuthorDto>> GetAuthors()
+
+        //{
+
+        //    var autors = _courseLibraryRepository.GetAuthors();
+        //    return new JsonResult(_mapper.Map<IEnumerable<AuthorDto>>(autors));
+        //}
         [HttpGet()]
-        [HttpHead]
-        public ActionResult<IEnumerable<AuthorDto>> GetAuthors()
+        public ActionResult<IEnumerable<AuthorDto>> GetAuthors(string mainCategory , string searchQuery)
 
         {
 
-            var autors = _courseLibraryRepository.GetAuthors();
-            return new JsonResult(_mapper.Map<IEnumerable<AuthorDto>>(autors));
-        }
-        [HttpGet()]
-        public ActionResult<IEnumerable<AuthorDto>> GetAuthors(string mainCategory)
-
-        {
-
-            var autors = _courseLibraryRepository.GetAuthors(mainCategory);
+            var autors = _courseLibraryRepository.GetAuthors(mainCategory, searchQuery);
             return new JsonResult(_mapper.Map<IEnumerable<AuthorDto>>(autors));
         }
 
