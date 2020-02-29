@@ -1,5 +1,6 @@
 ﻿using CourseLibrary.API.DbContexts;
 using CourseLibrary.API.Entities;
+using CourseLibrary.API.ResourceParameter;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -122,15 +123,15 @@ namespace CourseLibrary.API.Services
             return _context.Authors.ToList<Author>();
         }
         
-        public IEnumerable<Author> GetAuthors(string mainCategory, string searchQuery)
+        public IEnumerable<Author> GetAuthors(AuthrorsResourceParameter AuthrorsResourceParameter)
         {
-            if (string.IsNullOrWhiteSpace(mainCategory) && string.IsNullOrWhiteSpace(searchQuery)) return _context.Authors.ToList();
+            if (string.IsNullOrWhiteSpace(AuthrorsResourceParameter.MainCategory) && string.IsNullOrWhiteSpace(AuthrorsResourceParameter.SearchQuery)) return _context.Authors.ToList();
             var collction = _context.Authors as IQueryable<Author>;
-            if (!string.IsNullOrWhiteSpace(mainCategory))
-                collction = collction.Where(x => x.MainCategory == mainCategory.Trim());
-            if(!string.IsNullOrWhiteSpace(searchQuery))
+            if (!string.IsNullOrWhiteSpace(AuthrorsResourceParameter.MainCategory))
+                collction = collction.Where(x => x.MainCategory == AuthrorsResourceParameter.MainCategory.Trim());
+            if(!string.IsNullOrWhiteSpace(AuthrorsResourceParameter.SearchQuery))
             {
-                collction = collction.Where(x => x.MainCategory.Contains(searchQuery.Trim()) || x.LastName.Contains(searchQuery.Trim()) || x.FirstName.Contains(searchQuery.Trim())); 
+                collction = collction.Where(x => x.MainCategory.Contains(AuthrorsResourceParameter.SearchQuery.Trim()) || x.LastName.Contains(AuthrorsResourceParameter.SearchQuery.Trim()) || x.FirstName.Contains(AuthrorsResourceParameter.SearchQuery.Trim())); 
             }
             return collction.ToList(); 
         }
