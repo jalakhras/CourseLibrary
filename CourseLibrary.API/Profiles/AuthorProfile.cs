@@ -15,7 +15,7 @@ namespace CourseLibrary.API.Profiles
                 .ForMember(dist => dist.Age,
                 opt => opt.MapFrom(src => src.DateOfBirth.GetCurrantAge()));
 
-
+            CreateMap<AuthorForCreationDto , Author>();
 
         }
     }
