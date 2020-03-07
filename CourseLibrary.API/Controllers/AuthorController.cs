@@ -48,7 +48,7 @@ namespace CourseLibrary.API.Controllers
         }
 
         [HttpPost]
-        public ActionResult<AuthorDto> CreateAuthors(AuthorForCreationDto  authorForCreation)
+        public ActionResult<AuthorDto> CreateAuthors(AuthorForCreationDto authorForCreation)
         {
             var authorEntity = _mapper.Map<Author>(authorForCreation);
             _courseLibraryRepository.AddAuthor(authorEntity);
@@ -57,6 +57,15 @@ namespace CourseLibrary.API.Controllers
             return CreatedAtRoute("GetAuthor", new { authorId = authorToReturn.Id }, authorToReturn);
 
 
+        }
+
+
+
+        [HttpOptions]
+        public IActionResult GetAuthorsOptions()
+        {
+            Response.Headers.Add("Allow", "GET,OPTIONS,POST");
+            return Ok();
         }
     }
 }
