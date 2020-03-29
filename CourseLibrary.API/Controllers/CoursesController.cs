@@ -4,6 +4,9 @@ using CourseLibrary.API.Model;
 using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 
@@ -66,10 +69,10 @@ namespace CourseLibrary.API.Controllers
             {
                 var courseToAdd = _mapper.Map<Course>(course);
                 courseToAdd.Id = courseId;
-                _courseLibraryRepository.AddCourse(authorId,courseToAdd);
+                _courseLibraryRepository.AddCourse(authorId, courseToAdd);
                 _courseLibraryRepository.Save();
                 var courseToReturn = _mapper.Map<CourseDto>(courseToAdd);
-                return CreatedAtRoute("GetCourseForAuthor", new {  authorId, CourseId = courseToReturn.Id }, courseToReturn);
+                return CreatedAtRoute("GetCourseForAuthor", new { authorId, CourseId = courseToReturn.Id }, courseToReturn);
             }
 
             _mapper.Map(course, courseForAuthorFromRep);
@@ -79,7 +82,7 @@ namespace CourseLibrary.API.Controllers
         }
 
         [HttpPatch("{courseId}")]
-        public ActionResult PartiallyUpdateCourseForAuthor(Guid authorId,Guid courseId,JsonPatchDocument<CourseForUpdateDto> patchDocument)
+        public ActionResult PartiallyUpdateCourseForAuthor(Guid authorId, Guid courseId, JsonPatchDocument<CourseForUpdateDto> patchDocument)
         {
             if (!_courseLibraryRepository.AuthorExists(authorId))
             {
@@ -92,7 +95,7 @@ namespace CourseLibrary.API.Controllers
                 return NotFound();
             }
             var courseToPath = _mapper.Map<CourseForUpdateDto>(courseForAuthorFromRep);
-            patchDocument.ApplyTo(courseToPath,ModelState);
+            patchDocument.ApplyTo(courseToPath, ModelState);
             //To check if a model is valid after Apply patch document 
             if (!TryValidateModel(courseToPath))
             {
@@ -103,6 +106,15 @@ namespace CourseLibrary.API.Controllers
             _courseLibraryRepository.Save();
             return NoContent();
 
+        }
+
+        // Returning ValidationProblems from Controller Actions to show details of invaild model
+        public override ActionResult ValidationProblem(
+           [ActionResultObjectValue] ModelStateDictionary modelStateDictionary)
+        {
+            var options = HttpContext.RequestServices
+                .GetRequiredService<Microsoft.Extensions.Options.IOptions<ApiBehaviorOptions>>();
+            return (ActionResult)options.Value.InvalidModelStateResponseFactory(ControllerContext);
         }
     }
 }
