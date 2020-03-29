@@ -92,7 +92,12 @@ namespace CourseLibrary.API.Controllers
                 return NotFound();
             }
             var courseToPath = _mapper.Map<CourseForUpdateDto>(courseForAuthorFromRep);
-            patchDocument.ApplyTo(courseToPath);
+            patchDocument.ApplyTo(courseToPath,ModelState);
+            //To check if a model is valid after Apply patch document 
+            if (!TryValidateModel(courseToPath))
+            {
+                return ValidationProblem(ModelState);
+            }
             _mapper.Map(courseToPath, courseForAuthorFromRep);
             _courseLibraryRepository.UpdateCourse(courseForAuthorFromRep);
             _courseLibraryRepository.Save();
