@@ -53,7 +53,7 @@ namespace CourseLibrary.API.Controllers
 
 
         [HttpPut("{courseId}")]
-        public ActionResult UpdateCoursesForAuthor(Guid authorId, Guid courseId, CourseForUpdateDto course)
+        public IActionResult UpdateCoursesForAuthor(Guid authorId, Guid courseId, CourseForUpdateDto course)
         {
             if (!_courseLibraryRepository.AuthorExists(authorId))
             {
@@ -63,7 +63,12 @@ namespace CourseLibrary.API.Controllers
             var courseForAuthorFromRep = _courseLibraryRepository.GetCourse(authorId, courseId);
             if (courseForAuthorFromRep == null)
             {
-                return NotFound();
+                var courseToAdd = _mapper.Map<Course>(course);
+                courseToAdd.Id = courseId;
+                _courseLibraryRepository.AddCourse(authorId,courseToAdd);
+                _courseLibraryRepository.Save();
+                var courseToReturn = _mapper.Map<CourseDto>(courseToAdd);
+                return CreatedAtRoute("GetCourseForAuthor", new {  authorId, CourseId = courseToReturn.Id }, courseToReturn);
             }
 
             _mapper.Map(course, courseForAuthorFromRep);
