@@ -94,6 +94,11 @@ namespace CourseLibrary.API.Controllers
             {
                 var courseDto = new CourseForUpdateDto();
                 patchDocument.ApplyTo(courseDto, ModelState);
+                //To check if a model is valid after Apply patch document 
+                if (!TryValidateModel(courseDto))
+                {
+                    return ValidationProblem(ModelState);
+                }
                 var courseIdToAdd = _mapper.Map<Course>(courseDto);
                 courseIdToAdd.Id = courseId;
                 _courseLibraryRepository.AddCourse(authorId, courseIdToAdd);
