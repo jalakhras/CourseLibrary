@@ -121,6 +121,23 @@ namespace CourseLibrary.API.Controllers
 
         }
 
+
+        [HttpDelete("{courseId}")]
+        public ActionResult DeleteCoursesForAuthor(Guid authorId, Guid courseId)
+        {
+            if (!_courseLibraryRepository.AuthorExists(authorId))
+            {
+                return NotFound();
+            }
+            var courseForAuthorFromRep = _courseLibraryRepository.GetCourse(authorId, courseId);
+            if (courseForAuthorFromRep == null)
+            {
+                return NotFound();
+            }
+            _courseLibraryRepository.DeleteCourse(courseForAuthorFromRep);
+            _courseLibraryRepository.Save();
+            return NoContent();
+        }
         // Returning ValidationProblems from Controller Actions to show details of invaild model
         public override ActionResult ValidationProblem(
            [ActionResultObjectValue] ModelStateDictionary modelStateDictionary)
