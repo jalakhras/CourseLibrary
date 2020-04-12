@@ -38,7 +38,7 @@ namespace CourseLibrary.API.Controllers
             return new JsonResult(_mapper.Map<IEnumerable<AuthorDto>>(autors));
         }
 
-        [HttpGet("{authorId}",Name ="GetAuthor")]
+        [HttpGet("{authorId}", Name = "GetAuthor")]
         public IActionResult GetAuthors(Guid authorId)
         {
 
@@ -66,6 +66,23 @@ namespace CourseLibrary.API.Controllers
         {
             Response.Headers.Add("Allow", "GET,OPTIONS,POST");
             return Ok();
+        }
+
+        [HttpDelete("{authorId}")]
+        public ActionResult DeleteAuthor(Guid authorId)
+        {
+            var authorFromRepo = _courseLibraryRepository.GetAuthor(authorId);
+
+            if (authorFromRepo == null)
+            {
+                return NotFound();
+            }
+
+            _courseLibraryRepository.DeleteAuthor(authorFromRepo);
+
+            _courseLibraryRepository.Save();
+
+            return NoContent();
         }
     }
 }
