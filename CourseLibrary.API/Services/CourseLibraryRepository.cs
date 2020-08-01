@@ -133,6 +133,14 @@ namespace CourseLibrary.API.Services
             {
                 collction = collction.Where(x => x.MainCategory.Contains(AuthrorsResourceParameter.SearchQuery.Trim()) || x.LastName.Contains(AuthrorsResourceParameter.SearchQuery.Trim()) || x.FirstName.Contains(AuthrorsResourceParameter.SearchQuery.Trim())); 
             }
+            if(!string.IsNullOrEmpty(AuthrorsResourceParameter.OrderBy))
+            {
+                if(AuthrorsResourceParameter.OrderBy.ToLowerInvariant()=="name")
+                {
+                    collction=collction.OrderBy(x => x.FirstName).ThenBy(x => x.LastName);
+                }
+               // collction.ApplySort(AuthrorsResourceParameter.OrderBy, _mappingDictionary);
+            }
             return PagedList<Author>.Create(collction, AuthrorsResourceParameter.PageNumber, AuthrorsResourceParameter.PageSize);
         }
 
