@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using CourseLibrary.API.Entities;
+using CourseLibrary.API.Helper;
 using CourseLibrary.API.Model;
 using CourseLibrary.API.ResourceParameter;
 using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace CourseLibrary.API.Controllers
 {
@@ -29,13 +31,32 @@ namespace CourseLibrary.API.Controllers
         //    var autors = _courseLibraryRepository.GetAuthors();
         //    return new JsonResult(_mapper.Map<IEnumerable<AuthorDto>>(autors));
         //}
-        [HttpGet()]
-        public ActionResult<IEnumerable<AuthorDto>> GetAuthors([FromQuery] AuthrorsResourceParameter authrorsResourceParameter)
+        [HttpGet(Name = "GetAuthors")]
+        public ActionResult<IEnumerable<AuthorDto>> GetAuthors([FromQuery] AuthorsResourceParameters authorsResourceParameters)
 
         {
 
-            var autors = _courseLibraryRepository.GetAuthors(authrorsResourceParameter);
-            return new JsonResult(_mapper.Map<IEnumerable<AuthorDto>>(autors));
+            var authorsFromRepo = _courseLibraryRepository.GetAuthors(authorsResourceParameters);
+            var previousPageLink = authorsFromRepo.HasPrevious ?
+              CreateAuthorsResourceUri(authorsResourceParameters,
+              ResourceUriType.PreviousPage) : null;
+
+            var nextPageLink = authorsFromRepo.HasNext ?
+                CreateAuthorsResourceUri(authorsResourceParameters,
+                ResourceUriType.NextPage) : null;
+            var paginationMetadata = new
+            {
+                totalCount = authorsFromRepo.TotalCount,
+                pageSize = authorsFromRepo.PageSize,
+                currentPage = authorsFromRepo.CurrentPage,
+                totalPages = authorsFromRepo.TotalPages,
+                previousPageLink,
+                nextPageLink
+            };
+
+            Response.Headers.Add("X-Pagination",
+                JsonSerializer.Serialize(paginationMetadata));
+            return new JsonResult(_mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo));
         }
 
         [HttpGet("{authorId}", Name = "GetAuthor")]
@@ -83,6 +104,44 @@ namespace CourseLibrary.API.Controllers
             _courseLibraryRepository.Save();
 
             return NoContent();
+        }
+
+        private string CreateAuthorsResourceUri(
+             AuthorsResourceParameters authorsResourceParameters,
+             ResourceUriType type)
+        {
+            switch (type)
+            {
+                case ResourceUriType.PreviousPage:
+                    return Url.Link("GetAuthors",
+                      new
+                      {
+                          pageNumber = authorsResourceParameters.PageNumber - 1,
+                          pageSize = authorsResourceParameters.PageSize,
+                          mainCategory = authorsResourceParameters.MainCategory,
+                          searchQuery = authorsResourceParameters.SearchQuery
+                      });
+                case ResourceUriType.NextPage:
+                    return Url.Link("GetAuthors",
+                      new
+                      {
+                          pageNumber = authorsResourceParameters.PageNumber + 1,
+                          pageSize = authorsResourceParameters.PageSize,
+                          mainCategory = authorsResourceParameters.MainCategory,
+                          searchQuery = authorsResourceParameters.SearchQuery
+                      });
+
+                default:
+                    return Url.Link("GetAuthors",
+                    new
+                    {
+                        pageNumber = authorsResourceParameters.PageNumber,
+                        pageSize = authorsResourceParameters.PageSize,
+                        mainCategory = authorsResourceParameters.MainCategory,
+                        searchQuery = authorsResourceParameters.SearchQuery
+                    });
+            }
+
         }
     }
 }
