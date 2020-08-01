@@ -1,6 +1,8 @@
 ﻿using CourseLibrary.API.DbContexts;
 using CourseLibrary.API.Entities;
 using CourseLibrary.API.Helper;
+using CourseLibrary.API.Helpers;
+using CourseLibrary.API.Model;
 using CourseLibrary.API.ResourceParameter;
 using System;
 using System.Collections.Generic;
@@ -11,10 +13,12 @@ namespace CourseLibrary.API.Services
     public class CourseLibraryRepository : ICourseLibraryRepository, IDisposable
     {
         private readonly CourseLibraryContext _context;
+        private readonly IPropertyMappingService _propertyMappingService; 
 
-        public CourseLibraryRepository(CourseLibraryContext context)
+        public CourseLibraryRepository(CourseLibraryContext context, IPropertyMappingService propertyMappingService)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            _propertyMappingService = propertyMappingService ?? throw new ArgumentNullException(nameof(propertyMappingService));
         }
 
         public void AddCourse(Guid authorId, Course course)
@@ -135,11 +139,9 @@ namespace CourseLibrary.API.Services
             }
             if(!string.IsNullOrEmpty(AuthrorsResourceParameter.OrderBy))
             {
-                if(AuthrorsResourceParameter.OrderBy.ToLowerInvariant()=="name")
-                {
-                    collction=collction.OrderBy(x => x.FirstName).ThenBy(x => x.LastName);
-                }
-               // collction.ApplySort(AuthrorsResourceParameter.OrderBy, _mappingDictionary);
+               
+                var _mappingDictionary = _propertyMappingService.GetPropertyMapping<AuthorDto, Author>();
+                collction =  collction.ApplySort(AuthrorsResourceParameter.OrderBy, _mappingDictionary);
             }
             return PagedList<Author>.Create(collction, AuthrorsResourceParameter.PageNumber, AuthrorsResourceParameter.PageSize);
         }
