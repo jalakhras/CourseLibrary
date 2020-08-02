@@ -34,10 +34,10 @@ namespace CourseLibrary.API.Controllers
         //    return new JsonResult(_mapper.Map<IEnumerable<AuthorDto>>(autors));
         //}
         [HttpGet(Name = "GetAuthors")]
-        public ActionResult<IEnumerable<AuthorDto>> GetAuthors([FromQuery] AuthorsResourceParameters authorsResourceParameters)
+        public IActionResult GetAuthors([FromQuery] AuthorsResourceParameters authorsResourceParameters)
 
         {
-            if(!_propertyMappingService.ValidMappingExistsFor<Author,AuthorDto>(authorsResourceParameters.OrderBy))
+            if (!_propertyMappingService.ValidMappingExistsFor<AuthorDto, Author>(authorsResourceParameters.OrderBy))
             {
                 return BadRequest();
             }
@@ -62,16 +62,19 @@ namespace CourseLibrary.API.Controllers
 
             Response.Headers.Add("X-Pagination",
                 JsonSerializer.Serialize(paginationMetadata));
-            return new JsonResult(_mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo));
+            var data = _mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo);
+            var result = data.ShapeData(authorsResourceParameters.Fields);
+            return Ok(result); 
+            //return Ok(_mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo).ShapeData(authorsResourceParameters.Fields));
         }
 
         [HttpGet("{authorId}", Name = "GetAuthor")]
-        public IActionResult GetAuthors(Guid authorId)
+        public IActionResult GetAuthors(Guid authorId,string fields)
         {
 
             var autors = _courseLibraryRepository.GetAuthor(authorId);
             if (autors == null) return NotFound();
-            return new JsonResult(_mapper.Map<AuthorDto>(autors));
+            return Ok(_mapper.Map<AuthorDto>(autors).ShapeData(fields));
         }
 
         [HttpPost]
@@ -123,6 +126,7 @@ namespace CourseLibrary.API.Controllers
                       new
 
                       {
+                          fields = authorsResourceParameters.Fields ,
                           orderBy = authorsResourceParameters.OrderBy,
                           pageNumber = authorsResourceParameters.PageNumber - 1,
                           pageSize = authorsResourceParameters.PageSize,
@@ -133,6 +137,7 @@ namespace CourseLibrary.API.Controllers
                     return Url.Link("GetAuthors",
                       new
                       {
+                          fields = authorsResourceParameters.Fields,
                           orderBy = authorsResourceParameters.OrderBy,
                           pageNumber = authorsResourceParameters.PageNumber + 1,
                           pageSize = authorsResourceParameters.PageSize,
@@ -144,6 +149,7 @@ namespace CourseLibrary.API.Controllers
                     return Url.Link("GetAuthors",
                     new
                     {
+                        fields = authorsResourceParameters.Fields,
                         orderBy = authorsResourceParameters.OrderBy,
                         pageNumber = authorsResourceParameters.PageNumber,
                         pageSize = authorsResourceParameters.PageSize,

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
+using System.Reflection;
 
 namespace CourseLibrary.API.Helpers
 {
@@ -82,6 +83,84 @@ namespace CourseLibrary.API.Helpers
             }
 
             return source.OrderBy(orderByString);
+        }
+        public static IQueryable<T> ApplySelect<T>(this IQueryable<T> source, string fields,
+              Dictionary<string, PropertyMappingValue> mappingDictionary)
+        {
+            if (source == null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            if (mappingDictionary == null)
+            {
+                throw new ArgumentNullException(nameof(mappingDictionary));
+            }
+
+            if (string.IsNullOrWhiteSpace(fields))
+            {
+                return source;
+            }
+
+            var selectByString = string.Empty;
+
+            // the orderBy string is separated by ",", so we split it.
+            var selectByAfterSplit = fields.Split(',');
+
+            var FilledsOut = new List<string>();
+            // apply each orderby clause  
+            foreach (var selectByClause in selectByAfterSplit)
+            {
+                // trim the orderBy clause, as it might contain leading
+                // or trailing spaces. Can't trim the var in foreach,
+                // so use another var.
+                var trimmedSelectByClause = selectByClause.Trim();
+                var indexOfFirstSpace = trimmedSelectByClause.IndexOf(" ");
+                var propertyName = indexOfFirstSpace == -1 ?
+                    trimmedSelectByClause : trimmedSelectByClause.Remove(indexOfFirstSpace);
+
+                // find the matching property
+                if (!mappingDictionary.ContainsKey(propertyName))
+                {
+                    var propertyInfo = typeof(T).GetProperty(propertyName, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
+                    if (propertyInfo == null) throw new Exception($"Property {propertyName} wasn't found on" + $" {typeof(T)}");
+                    FilledsOut.Add(propertyName);
+                }
+
+                // get the PropertyMappingValue
+                var propertyMappingValue = mappingDictionary[propertyName];
+
+                if (propertyMappingValue == null && !FilledsOut.Contains(propertyName))
+                {
+                    throw new ArgumentNullException("propertyMappingValue");
+                }
+
+                // Run through the property names 
+                // so the orderby clauses are applied in the correct order
+                foreach (var destinationProperty in
+                    propertyMappingValue.DestinationProperties)
+                {
+
+
+                    selectByString = selectByString +
+                        (string.IsNullOrWhiteSpace(selectByString) ? string.Empty : ", ")
+                        + destinationProperty
+                        ;
+                }
+                foreach (var destinationProperty in
+                    FilledsOut)
+                {
+
+
+                    selectByString = selectByString +
+                        (string.IsNullOrWhiteSpace(selectByString) ? string.Empty : ", ")
+                        + destinationProperty
+                        ;
+                }
+            }
+
+            var result =  source.Select<T>(selectByString);
+            return result;
         }
     }
 }
