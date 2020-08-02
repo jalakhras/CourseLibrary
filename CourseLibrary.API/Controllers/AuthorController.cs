@@ -18,11 +18,13 @@ namespace CourseLibrary.API.Controllers
         private readonly ICourseLibraryRepository _courseLibraryRepository;
         private readonly IMapper _mapper;
         private readonly IPropertyMappingService _propertyMappingService;
-        public AuthorController(ICourseLibraryRepository courseLibraryRepository, IPropertyMappingService propertyMappingService, IMapper mapper)
+        private readonly IPropertyCheckerService _propertyCheckerService; 
+        public AuthorController(ICourseLibraryRepository courseLibraryRepository, IPropertyMappingService propertyMappingService, IMapper mapper, IPropertyCheckerService propertyCheckerService)
         {
             _courseLibraryRepository = courseLibraryRepository ?? throw new ArgumentNullException(nameof(courseLibraryRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _propertyMappingService = propertyMappingService;
+            _propertyCheckerService = propertyCheckerService;
         }
         //[HttpGet()]
         //[HttpHead]
@@ -37,7 +39,7 @@ namespace CourseLibrary.API.Controllers
         public IActionResult GetAuthors([FromQuery] AuthorsResourceParameters authorsResourceParameters)
 
         {
-            if (!_propertyMappingService.ValidMappingExistsFor<AuthorDto, Author>(authorsResourceParameters.OrderBy))
+            if (!_propertyMappingService.ValidMappingExistsFor<AuthorDto, Author>(authorsResourceParameters.OrderBy) || !_propertyCheckerService.TypeHasProperties<AuthorDto>(authorsResourceParameters.Fields))
             {
                 return BadRequest();
             }
@@ -71,7 +73,10 @@ namespace CourseLibrary.API.Controllers
         [HttpGet("{authorId}", Name = "GetAuthor")]
         public IActionResult GetAuthors(Guid authorId,string fields)
         {
-
+            if(!_propertyCheckerService.TypeHasProperties<AuthorDto>(fields))
+            {
+                return BadRequest();
+            }
             var autors = _courseLibraryRepository.GetAuthor(authorId);
             if (autors == null) return NotFound();
             return Ok(_mapper.Map<AuthorDto>(autors).ShapeData(fields));
