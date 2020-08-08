@@ -5,6 +5,7 @@ using CourseLibrary.API.Model;
 using CourseLibrary.API.ResourceParameter;
 using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Net.Http.Headers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -79,19 +80,24 @@ namespace CourseLibrary.API.Controllers
         }
 
         [HttpGet("{authorId}", Name = "GetAuthor")]
-        public IActionResult GetAuthors(Guid authorId, string fields)
+        public IActionResult GetAuthors(Guid authorId, string fields, [FromHeader(Name = "Accept")] string mediaType)
         {
-            if (!_propertyCheckerService.TypeHasProperties<AuthorDto>(fields))
+            if (!MediaTypeHeaderValue.TryParse(mediaType,out MediaTypeHeaderValue parsedMediaType) || !_propertyCheckerService.TypeHasProperties<AuthorDto>(fields))
             {
                 return BadRequest();
             }
+           
             var autors = _courseLibraryRepository.GetAuthor(authorId);
             if (autors == null) return NotFound();
-            var links = CreateLinksForAuthor(authorId, fields);
-            var linkedResourceToReturn = _mapper.Map<AuthorDto>(autors).ShapeData(fields)
-               as IDictionary<string, object>;
-            linkedResourceToReturn.Add("links", links);
-            return Ok(linkedResourceToReturn);
+            if (parsedMediaType.MediaType == "application/vnd.marvin.hateoas+json")
+            {
+                var links = CreateLinksForAuthor(authorId, fields) ;
+                var linkedResourceToReturn = _mapper.Map<AuthorDto>(autors).ShapeData(fields) as IDictionary<string, object>;
+                linkedResourceToReturn.Add("links", links);
+                return Ok(linkedResourceToReturn);
+
+            }
+            return Ok(_mapper.Map<AuthorDto>(autors).ShapeData(fields));
 
         }
 
