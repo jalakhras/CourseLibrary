@@ -32,6 +32,7 @@ namespace CourseLibrary.API.Controllers
         }
 
         [HttpGet("{CourseId}", Name = "GetCourseForAuthor")]
+        [ResponseCache(Duration =120)]
         public ActionResult<CourseDto> GetCourseForAuthor(Guid authorId, Guid CourseId)
         {
             if (!_courseLibraryRepository.AuthorExists(authorId)) return NotFound();
