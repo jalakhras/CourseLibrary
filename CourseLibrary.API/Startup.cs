@@ -29,14 +29,19 @@ namespace CourseLibrary.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddResponseCaching();
-            services.AddControllers(setup => setup.ReturnHttpNotAcceptable = true)
-                .AddNewtonsoftJson(setupAction =>
-                {
+
+            services.AddControllers(setupAction =>
+            {
+                setupAction.ReturnHttpNotAcceptable = true;
+                setupAction.CacheProfiles.Add("240SecondsCacheProfile",new CacheProfile(){Duration = 240 });
+            }).AddNewtonsoftJson(setupAction =>
+            {
                     setupAction.SerializerSettings.ContractResolver =
                        new CamelCasePropertyNamesContractResolver();
                 }).AddXmlDataContractSerializerFormatters()
                  .ConfigureApiBehaviorOptions(setupAction =>
                  {
+
                      setupAction.InvalidModelStateResponseFactory = context =>
                      {
                          var problemDetails = new ValidationProblemDetails(context.ModelState)
