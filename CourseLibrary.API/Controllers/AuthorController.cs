@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CourseLibrary.API.ActionConstraints;
 using CourseLibrary.API.Entities;
 using CourseLibrary.API.Helper;
 using CourseLibrary.API.Model;
@@ -137,6 +138,7 @@ namespace CourseLibrary.API.Controllers
 
 
         [HttpPost(Name = "CreateAuthor")]
+        [RequestHeaderMatchesMediaType("Content-Type", "application/json", "application/vnd.marvin.authorforcreation+json")]
         public ActionResult<AuthorDto> CreateAuthors(AuthorForCreationDto authorForCreation)
         {
             var authorEntity = _mapper.Map<Author>(authorForCreation);
@@ -150,7 +152,27 @@ namespace CourseLibrary.API.Controllers
 
         }
 
+        [HttpPost(Name = "CreateAuthorWithDateOfDeath")]
+        [RequestHeaderMatchesMediaType("Content-Type","application/vnd.marvin.authorforcreationwithdateofdeath+json")]
+        [Consumes("application/vnd.marvin.authorforcreationwithdateofdeath+json")]
+        public IActionResult CreateAuthorWithDateOfDeath(AuthorForCreationWithDateOfDeathDto author)
+        {
+            var authorEntity = _mapper.Map<Entities.Author>(author);
+            _courseLibraryRepository.AddAuthor(authorEntity);
+            _courseLibraryRepository.Save();
 
+            var authorToReturn = _mapper.Map<AuthorDto>(authorEntity);
+
+            var links = CreateLinksForAuthor(authorToReturn.Id, null);
+
+            var linkedResourceToReturn = authorToReturn.ShapeData(null)
+                as IDictionary<string, object>;
+            linkedResourceToReturn.Add("links", links);
+
+            return CreatedAtRoute("GetAuthor",
+                new { authorId = linkedResourceToReturn["Id"] },
+                linkedResourceToReturn);
+        }
 
         [HttpOptions]
         public IActionResult GetAuthorsOptions()

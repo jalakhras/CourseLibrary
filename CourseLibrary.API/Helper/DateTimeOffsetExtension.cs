@@ -4,13 +4,22 @@ namespace CourseLibrary.API.Helper
 {
     public static class DateTimeOffsetExtension
     {
-        public static int GetCurrantAge(this DateTimeOffset DateOfBarth)
+        public static int GetCurrentAge(this DateTimeOffset dateTimeOffset,DateTimeOffset? dateOfDeath)
         {
-            var age = DateTime.UtcNow.Year - DateOfBarth.Year;
-            if (DateTime.UtcNow < DateOfBarth.AddYears(age))
+            var dateToCalculateTo = DateTime.UtcNow;
+
+            if (dateOfDeath != null)
+            {
+                dateToCalculateTo = dateOfDeath.Value.UtcDateTime;
+            }
+
+            var age = dateToCalculateTo.Year - dateTimeOffset.Year;
+
+            if (dateToCalculateTo < dateTimeOffset.AddYears(age))
             {
                 age--;
             }
+
             return age;
         }
     }
